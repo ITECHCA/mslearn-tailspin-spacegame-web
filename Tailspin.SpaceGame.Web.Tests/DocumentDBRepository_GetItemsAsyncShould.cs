@@ -40,14 +40,21 @@ namespace Tests
             Expression<Func<Score, bool>> queryPredicate = score => (score.GameRegion == gameRegion);
 
             // Fetch the scores.
-            Task<IEnumerable<Score>> scoresTask = _scoreRepository.GetItemsAsync(
-                queryPredicate, // the predicate defined above
-                score => 1, // we don't care about the order
-                PAGE,
-                MAX_RESULTS
-            );
-            IEnumerable<Score> scores = scoresTask.Result;
+        public Task<IEnumerable<T>> GetItemsAsync(
+    Expression<Func<T, bool>> queryPredicate,
+    Expression<Func<T, int>> orderDescendingPredicate,
+    int page = 1, int pageSize = 10
+)
+{
+    var result = _items.AsQueryable()
+        .Where(queryPredicate) // filter
+        .OrderByDescending(orderDescendingPredicate) // sort
+        .Skip(page * pageSize) // find page
+        .Take(pageSize) // take items
+        .AsEnumerable(); // make enumeratable
 
+    return Task<IEnumerable<T>>.FromResult(result);
+}
             // Verify that each score's game region matches the provided game region.
             Assert.That(scores, Is.All.Matches<Score>(score => score.GameRegion == gameRegion));
         }
@@ -60,13 +67,21 @@ namespace Tests
             const int PAGE = 0; // take the first page of results
 
             // Fetch the scores.
-            Task<IEnumerable<Score>> scoresTask = _scoreRepository.GetItemsAsync(
-                score => true, // return all scores
-                score => 1, // we don't care about the order
-                PAGE,
-                count // fetch this number of results
-            );
-            IEnumerable<Score> scores = scoresTask.Result;
+          public Task<IEnumerable<T>> GetItemsAsync(
+    Expression<Func<T, bool>> queryPredicate,
+    Expression<Func<T, int>> orderDescendingPredicate,
+    int page = 1, int pageSize = 10
+)
+{
+    var result = _items.AsQueryable()
+        .Where(queryPredicate) // filter
+        .OrderByDescending(orderDescendingPredicate) // sort
+        .Skip(page * pageSize) // find page
+        .Take(pageSize) // take items
+        .AsEnumerable(); // make enumeratable
+
+    return Task<IEnumerable<T>>.FromResult(result);
+}
 
             // Verify that we received the specified number of items.
             return scores.Count();
